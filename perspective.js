@@ -9,14 +9,16 @@ var perspectiveExample = function() {
     var positionsArray = [];
     var colorsArray = [];
 
-    var near = 0.3;
-    var far = 3.0;
-    var radius = 4.0;
+    var near = 0.1;  // Memperkecil nilai near untuk memperbesar view
+    var far = 10.0;  // Memperbesar nilai far untuk memberikan ruang lebih banyak
+    var radius = 5.0;  // Memperbesar radius agar objek terlihat lebih kecil dan tidak terpotong
     var theta = 0.0;
     var phi = 0.0;
-    var dr = 5.0 * Math.PI/180.0;
+    var rotateX = 0; // Sudut rotasi pada sumbu X
+    var rotateY = 0; // Sudut rotasi pada sumbu Y
+    var rotateSpeed = 1; // Kecepatan rotasi
 
-    var fovy = 45.0;
+    var fovy = 30.0;  // Mengurangi nilai fovy untuk memperbesar tampilan objek (default: 45)
     var aspect;
 
     var modelViewMatrixLoc, projectionMatrixLoc;
@@ -25,7 +27,6 @@ var perspectiveExample = function() {
     const at = vec3(0.0, 0.0, 0.0);
     const up = vec3(0.0, 1.0, 0.0);
 
-    // Dodecahedron vertices and faces
     var vertices = [];
     var faces = [];
 
@@ -57,7 +58,7 @@ var perspectiveExample = function() {
             for (let i = 1; i < 4; i++) {
                 positionsArray.push(vertices[face[0]]);
                 positionsArray.push(vertices[face[i]]);
-                positionsArray.push(vertices[face[i+1]]);
+                positionsArray.push(vertices[face[i + 1]]);
                 colorsArray.push(color);
                 colorsArray.push(color);
                 colorsArray.push(color);
@@ -86,7 +87,7 @@ var perspectiveExample = function() {
 
         gl.viewport(0, 0, canvas.width, canvas.height);
 
-        aspect = canvas.width/canvas.height;
+        aspect = canvas.width / canvas.height;
 
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
 
@@ -116,14 +117,11 @@ var perspectiveExample = function() {
         modelViewMatrixLoc = gl.getUniformLocation(program, "uModelViewMatrix");
         projectionMatrixLoc = gl.getUniformLocation(program, "uProjectionMatrix");
 
-        document.getElementById("Button1").onclick = function(){near *= 1.1; far *= 1.1;};
-        document.getElementById("Button2").onclick = function(){near *= 0.9; far *= 0.9;};
-        document.getElementById("Button3").onclick = function(){radius *= 2.0;};
-        document.getElementById("Button4").onclick = function(){radius *= 0.5;};
-        document.getElementById("Button5").onclick = function(){theta += dr;};
-        document.getElementById("Button6").onclick = function(){theta -= dr;};
-        document.getElementById("Button7").onclick = function(){phi += dr;};
-        document.getElementById("Button8").onclick = function(){phi -= dr;};
+        // Event listeners for rotation buttons
+        document.getElementById("Button1").onclick = function() { rotateX = rotateSpeed; };
+        document.getElementById("Button2").onclick = function() { rotateX = -rotateSpeed; };
+        document.getElementById("Button3").onclick = function() { rotateY = rotateSpeed; };
+        document.getElementById("Button4").onclick = function() { rotateY = -rotateSpeed; };
 
         render();
     }
@@ -131,8 +129,14 @@ var perspectiveExample = function() {
     function render() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
-            radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
+        eye = vec3(radius * Math.sin(theta) * Math.cos(phi),
+                    radius * Math.sin(theta) * Math.sin(phi),
+                    radius * Math.cos(theta));
+
+        // Apply rotations
+        theta += rotateX * 0.01;  // Perubahan kecil untuk rotasi sumbu X
+        phi += rotateY * 0.01;     // Perubahan kecil untuk rotasi sumbu Y
+
         modelViewMatrix = lookAt(eye, at, up);
         projectionMatrix = perspective(fovy, aspect, near, far);
 
