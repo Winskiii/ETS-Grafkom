@@ -1,110 +1,121 @@
 "use strict";
 
-var perspectiveExample = function() {
+var shadedCube = function() {
+
     var canvas;
     var gl;
 
-    var numVertices = 108;  // 12 faces * 3 triangles per face * 3 vertices per triangle
-
+    var numPositions = 60; // Update for 20 triangles in dodecahedron (3 vertices each)
     var positionsArray = [];
-    var colorsArray = [];
+    var normalsArray = [];
 
-    var near = 0.1;  // Memperkecil nilai near untuk memperbesar view
-    var far = 10.0;  // Memperbesar nilai far untuk memberikan ruang lebih banyak
-    var radius = 5.0;  // Memperbesar radius agar objek terlihat lebih kecil dan tidak terpotong
-    var theta = 0.0;
-    var phi = 0.0;
-    var rotateX = 0; // Sudut rotasi pada sumbu X
-    var rotateY = 0; // Sudut rotasi pada sumbu Y
-    var rotateSpeed = 1; // Kecepatan rotasi
-
-    var fovy = 30.0;  // Mengurangi nilai fovy untuk memperbesar tampilan objek (default: 45)
-    var aspect;
-
-    var modelViewMatrixLoc, projectionMatrixLoc;
-    var modelViewMatrix, projectionMatrix;
-    var eye;
-    const at = vec3(0.0, 0.0, 0.0);
-    const up = vec3(0.0, 1.0, 0.0);
-
-    var vertices = [];
-    var faces = [];
-
-    function calculateDodecahedronGeometry() {
-        const A = (1 + Math.sqrt(5)) / 2; // Golden ratio
-        const B = 1 / A;
-        const r = 0.5; // Scale factor
-
-        vertices = [
-            vec4(r, r, r, 1), vec4(r, r, -r, 1), vec4(r, -r, r, 1), vec4(r, -r, -r, 1),
-            vec4(-r, r, r, 1), vec4(-r, r, -r, 1), vec4(-r, -r, r, 1), vec4(-r, -r, -r, 1),
-            vec4(0, B*r, A*r, 1), vec4(0, B*r, -A*r, 1), vec4(0, -B*r, A*r, 1), vec4(0, -B*r, -A*r, 1),
-            vec4(B*r, A*r, 0, 1), vec4(B*r, -A*r, 0, 1), vec4(-B*r, A*r, 0, 1), vec4(-B*r, -A*r, 0, 1),
-            vec4(A*r, 0, B*r, 1), vec4(A*r, 0, -B*r, 1), vec4(-A*r, 0, B*r, 1), vec4(-A*r, 0, -B*r, 1)
-        ];
-
-        faces = [
-            [0, 16, 2, 10, 8], [0, 8, 4, 14, 12], [16, 17, 1, 12, 0], [1, 9, 11, 3, 17],
-            [1, 12, 14, 5, 9], [2, 13, 15, 6, 10], [13, 3, 17, 16, 2], [3, 11, 7, 15, 13],
-            [4, 8, 10, 6, 18], [14, 5, 19, 18, 4], [5, 19, 7, 11, 9], [15, 7, 19, 18, 6]
-        ];
-    }
-
-    function createDodecahedron() {
-        calculateDodecahedronGeometry();
-        for (let face of faces) {
-            let color = vertexColors[Math.floor(Math.random() * vertexColors.length)];
-            // Triangulate the pentagon
-            for (let i = 1; i < 4; i++) {
-                positionsArray.push(vertices[face[0]]);
-                positionsArray.push(vertices[face[i]]);
-                positionsArray.push(vertices[face[i + 1]]);
-                colorsArray.push(color);
-                colorsArray.push(color);
-                colorsArray.push(color);
-            }
-        }
-    }
-
-    var vertexColors = [
-        vec4(1.0, 0.0, 0.0, 1.0),  // red
-        vec4(1.0, 1.0, 0.0, 1.0),  // yellow
-        vec4(0.0, 1.0, 0.0, 1.0),  // green
-        vec4(0.0, 0.0, 1.0, 1.0),  // blue
-        vec4(1.0, 0.0, 1.0, 1.0),  // magenta
-        vec4(0.0, 1.0, 1.0, 1.0),  // cyan
-        vec4(1.0, 0.5, 0.0, 1.0),  // orange
-        vec4(0.5, 0.0, 1.0, 1.0),  // purple
+    const r = 0.5; // Skala objek
+    const A = (1 + Math.sqrt(5)) / 2; // Golden ratio
+    const B = 1 / A;
+    
+    // vertices dan faces 2
+    var vertices = [
+        vec4(r, r, r, 1), vec4(r, r, -r, 1), vec4(r, -r, r, 1), vec4(r, -r, -r, 1),
+        vec4(-r, r, r, 1), vec4(-r, r, -r, 1), vec4(-r, -r, r, 1), vec4(-r, -r, -r, 1),
+        vec4(0, B*r, A*r, 1), vec4(0, B*r, -A*r, 1), vec4(0, -B*r, A*r, 1), vec4(0, -B*r, -A*r, 1),
+        vec4(B*r, A*r, 0, 1), vec4(B*r, -A*r, 0, 1), vec4(-B*r, A*r, 0, 1), vec4(-B*r, -A*r, 0, 1),
+        vec4(A*r, 0, B*r, 1), vec4(A*r, 0, -B*r, 1), vec4(-A*r, 0, B*r, 1), vec4(-A*r, 0, -B*r, 1)
     ];
+    
+    var faces = [
+        [0, 16, 2, 10, 8], [0, 8, 4, 14, 12], [16, 17, 1, 12, 0], [1, 9, 11, 3, 17],
+        [1, 12, 14, 5, 9], [2, 13, 15, 6, 10], [13, 3, 17, 16, 2], [3, 11, 7, 15, 13],
+        [4, 8, 10, 6, 18], [14, 5, 19, 18, 4], [5, 19, 7, 11, 9], [15, 7, 19, 18, 6]
+    ];
+    
+
+    var lightPosition = vec4(1.0, 1.0, 1.0, 0.0);
+    var lightAmbient = vec4(0.5, 0.5, 0.5, 1.0);
+    var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0);
+    var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0);
+
+    var materialAmbient = vec4(1.0, 0.0, 1.0, 1.0);
+    var materialDiffuse = vec4(1.0, 0.8, 0.0, 1.0);
+    var materialSpecular = vec4(1.0, 0.8, 0.0, 1.0);
+    var materialShininess = 20.0;
+
+    var ctm;
+    var modelViewMatrix, projectionMatrix;
+    var viewerPos;
+    var program;
+
+    var xAxis = 0;
+    var yAxis = 1;
+    var zAxis = 2;
+    var axis = 0;
+    var theta = vec3(0, 0, 0);
+
+    var thetaLoc;
+
+    var flag = false;
 
     init();
 
+    function quad(a, b, c, d) {
+        var t1 = subtract(vertices[b], vertices[a]);
+        var t2 = subtract(vertices[c], vertices[b]);
+        var normal = cross(t1, t2);
+        normal = vec3(normal);
+
+        positionsArray.push(vertices[a]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[b]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[c]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[a]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[c]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[d]);
+        normalsArray.push(normal);
+    }
+
+    function colorDodecahedron() {
+        for (let i = 0; i < faces.length; i++) {
+            let a = faces[i][0];
+            let b = faces[i][1];
+            let c = faces[i][2];
+            let d = faces[i][3];
+            let e = faces[i][4];
+    
+            // Ambil warna yang sama untuk ketiga segitiga dalam satu face
+    
+            // Membagi pentagon menjadi 3 segitiga dengan warna yang sama
+            quad(a, b, e, b); // Segitiga 1: a-b-e
+            quad(b, e, c, b); // Segitiga 2: b-e-c
+            quad(c, e, d, b); // Segitiga 3: c-e-d
+        }
+    }
+    
+
     function init() {
         canvas = document.getElementById("gl-canvas");
-
         gl = canvas.getContext('webgl2');
         if (!gl) alert("WebGL 2.0 isn't available");
 
         gl.viewport(0, 0, canvas.width, canvas.height);
-
-        aspect = canvas.width / canvas.height;
-
         gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
         gl.enable(gl.DEPTH_TEST);
 
-        var program = initShaders(gl, "vertex-shader", "fragment-shader");
+        // Load shaders and initialize attribute buffers
+        program = initShaders(gl, "vertex-shader", "fragment-shader");
         gl.useProgram(program);
 
-        createDodecahedron();
+        colorDodecahedron();
 
-        var cBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW);
+        var nBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, nBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW);
 
-        var colorLoc = gl.getAttribLocation(program, "aColor");
-        gl.vertexAttribPointer(colorLoc, 4, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(colorLoc);
+        var normalLoc = gl.getAttribLocation(program, "aNormal");
+        gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(normalLoc);
 
         var vBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -114,14 +125,27 @@ var perspectiveExample = function() {
         gl.vertexAttribPointer(positionLoc, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(positionLoc);
 
-        modelViewMatrixLoc = gl.getUniformLocation(program, "uModelViewMatrix");
-        projectionMatrixLoc = gl.getUniformLocation(program, "uProjectionMatrix");
+        thetaLoc = gl.getUniformLocation(program, "theta");
 
-        // Event listeners for rotation buttons
-        document.getElementById("Button1").onclick = function() { rotateX = rotateSpeed; };
-        document.getElementById("Button2").onclick = function() { rotateX = -rotateSpeed; };
-        document.getElementById("Button3").onclick = function() { rotateY = rotateSpeed; };
-        document.getElementById("Button4").onclick = function() { rotateY = -rotateSpeed; };
+        viewerPos = vec3(0.0, 0.0, -3.0); // Adjusted for smaller scale
+
+        projectionMatrix = ortho(-1, 1, -1, 1, -100, 100);
+
+        var ambientProduct = mult(lightAmbient, materialAmbient);
+        var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+        var specularProduct = mult(lightSpecular, materialSpecular);
+
+        document.getElementById("ButtonX").onclick = function() { axis = xAxis; };
+        document.getElementById("ButtonY").onclick = function() { axis = yAxis; };
+        document.getElementById("ButtonZ").onclick = function() { axis = zAxis; };
+        document.getElementById("ButtonT").onclick = function() { flag = !flag; };
+
+        gl.uniform4fv(gl.getUniformLocation(program, "uAmbientProduct"), ambientProduct);
+        gl.uniform4fv(gl.getUniformLocation(program, "uDiffuseProduct"), diffuseProduct);
+        gl.uniform4fv(gl.getUniformLocation(program, "uSpecularProduct"), specularProduct);
+        gl.uniform4fv(gl.getUniformLocation(program, "uLightPosition"), lightPosition);
+        gl.uniform1f(gl.getUniformLocation(program, "uShininess"), materialShininess);
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "uProjectionMatrix"), false, flatten(projectionMatrix));
 
         render();
     }
@@ -129,23 +153,21 @@ var perspectiveExample = function() {
     function render() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        eye = vec3(radius * Math.sin(theta) * Math.cos(phi),
-                    radius * Math.sin(theta) * Math.sin(phi),
-                    radius * Math.cos(theta));
+        modelViewMatrix = lookAt(viewerPos, vec3(0, 0, 0), vec3(0, 1, 0));
+        modelViewMatrix = mult(modelViewMatrix, rotate(theta[axis], axis === 0 ? vec3(1, 0, 0) : axis === 1 ? vec3(0, 1, 0) : vec3(0, 0, 1)));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "uModelViewMatrix"), false, flatten(modelViewMatrix));
 
-        // Apply rotations
-        theta += rotateX * 0.01;  // Perubahan kecil untuk rotasi sumbu X
-        phi += rotateY * 0.01;     // Perubahan kecil untuk rotasi sumbu Y
+        // Draw dodecahedron
+        for (let i = 0; i < positionsArray.length; i += 3) {
+            gl.drawArrays(gl.TRIANGLES, i, 3);
+        }
 
-        modelViewMatrix = lookAt(eye, at, up);
-        projectionMatrix = perspective(fovy, aspect, near, far);
+        if (flag) {
+            theta[axis] += 2.0; // Adjust rotation speed as necessary
+        }
 
-        gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix));
-        gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix));
-
-        gl.drawArrays(gl.TRIANGLES, 0, numVertices);
         requestAnimationFrame(render);
     }
-}
+};
 
-perspectiveExample();
+window.onload = shadedCube;
