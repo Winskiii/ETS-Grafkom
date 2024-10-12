@@ -9,7 +9,7 @@ var shadedCube = function() {
     var positionsArray = [];
     var normalsArray = [];
 
-    const r = 0.5; // Skala objek
+    const r =0.4; // Skala objek
     const A = (1 + Math.sqrt(5)) / 2; // Golden ratio
     const B = 1 / A;
     
@@ -56,26 +56,6 @@ var shadedCube = function() {
 
     init();
 
-    function quad(a, b, c, d) {
-        var t1 = subtract(vertices[b], vertices[a]);
-        var t2 = subtract(vertices[c], vertices[b]);
-        var normal = cross(t1, t2);
-        normal = vec3(normal);
-
-        positionsArray.push(vertices[a]);
-        normalsArray.push(normal);
-        positionsArray.push(vertices[b]);
-        normalsArray.push(normal);
-        positionsArray.push(vertices[c]);
-        normalsArray.push(normal);
-        positionsArray.push(vertices[a]);
-        normalsArray.push(normal);
-        positionsArray.push(vertices[c]);
-        normalsArray.push(normal);
-        positionsArray.push(vertices[d]);
-        normalsArray.push(normal);
-    }
-
     function colorDodecahedron() {
         for (let i = 0; i < faces.length; i++) {
             let a = faces[i][0];
@@ -83,15 +63,30 @@ var shadedCube = function() {
             let c = faces[i][2];
             let d = faces[i][3];
             let e = faces[i][4];
-    
-            // Ambil warna yang sama untuk ketiga segitiga dalam satu face
-    
-            // Membagi pentagon menjadi 3 segitiga dengan warna yang sama
-            quad(a, b, e, b); // Segitiga 1: a-b-e
-            quad(b, e, c, b); // Segitiga 2: b-e-c
-            quad(c, e, d, b); // Segitiga 3: c-e-d
+            
+            // Membagi pentagon menjadi tiga segitiga yang tidak saling bertumpuk
+            quad(a, b, e); // Segitiga 1: a-b-e
+            quad(b, c, e); // Segitiga 2: b-c-e
+            quad(c, d, e); // Segitiga 3: c-d-e
         }
     }
+    
+    // Fungsi quad tetap sama
+    function quad(a, b, c) {
+        var t1 = subtract(vertices[b], vertices[a]);
+        var t2 = subtract(vertices[c], vertices[b]);
+        var normal = cross(t1, t2);
+        normal = vec3(normal);
+    
+        positionsArray.push(vertices[a]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[b]);
+        normalsArray.push(normal);
+        positionsArray.push(vertices[c]);
+        normalsArray.push(normal);
+    }
+    
+    
     
 
     function init() {
