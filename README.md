@@ -1,4 +1,4 @@
 # ETS-Grafkom
 
 
-mang eak win ?
+WINSTON HARD CARRY IZZAT
